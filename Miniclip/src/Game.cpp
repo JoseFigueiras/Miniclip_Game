@@ -36,8 +36,7 @@ Game::Game(const char* title, int xpos, int ypos, int width, int height,
 
 	board = new Board(boardSize, comboSize);
 
-	backgroundTex = IMG_LoadTexture(renderer, "D:\\Dev\\Miniclip\\assets\\Backdrop13.png");
-
+	loadTextures();
 
 	waitingForPlayerInput = false;
 }
@@ -88,6 +87,8 @@ void	Game::update()
 	{
 		
 	}
+	
+	board->updateFrameTime();
 
 }
 
@@ -101,5 +102,20 @@ void	Game::render()
 
 	SDL_RenderCopy(renderer, backgroundTex, NULL, NULL);
 
+	board->renderBoard(renderer, spriteMap);
+
 	SDL_RenderPresent(renderer);
+}
+
+void	Game::loadTextures()
+{
+	backgroundTex = IMG_LoadTexture(renderer, "D:\\Dev\\Miniclip\\assets\\Backdrop13.png");
+
+	for (int colorNum = 0; colorNum < ColorEnumSize; colorNum++)
+	{
+		string tileAssetPath = sprintf("assets/color_" + colorNum + ".png");
+		SDL_Texture* tileSprite = IMG_LoadTexture(renderer, tileAssetPath);
+	
+		spriteMap.insert(pair<Color, SDL_Texture*>(colorNum, tileSprite));
+	}
 }

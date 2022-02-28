@@ -39,7 +39,7 @@ bool Board::isBoardFilled()
 {
 	for (int x = 0; x < boardSize; x++)
 		for (int y = 0; y < boardSize; y++)
-			if (board[x][y].isEmpty)
+			if (board[x][y].isEmpty || board[x][y].currentYPos != board[x][y].finalYPos)
 				return false;
 	return true;
 }
@@ -68,6 +68,14 @@ void Board::applyGravity()
 
 				board[x][y] = board[x + 1][y];
 				board[x + 1][y] = temp;
+			}
+			// is tile in free fall
+			else if (board[x][y].currentYPos != board[x][y].finalYPos)
+			{
+				board[x][y].currentYPos += velocity * frameTime;
+				if (board[x][y].currentYPos >= board[x][y].finalYPos)
+					board[x][y].currentYPos = board[x][y].finalYPos;
+				velocity = velocity * 1.1f;
 			}
 		}
 	}
@@ -134,3 +142,19 @@ Color Board::generateRandomColor()
 
 	return (Color)randomNum;
 }
+
+void Board::updateFrameTime()
+{
+	timeCurrentFrame = getCurrentTime;
+
+	frameTime = timeCurrentFrame - timeLastFrame;
+	timeLastFrame = timeCurrentFrame;
+}
+
+void renderBoard(renderer, spriteMap)
+{
+	for (int x = 0; x < boardSize; x++)
+		for (int y = 0; y < boardSize; y++)
+			SDL_RenderCopy(renderer, spriteMap[board[x][y].color], NULL, NULL);
+}
+
