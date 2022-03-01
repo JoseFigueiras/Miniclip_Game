@@ -1,14 +1,18 @@
 #include "Board.hpp"
 
-Board::Board(int boardSize, int comboSize)
+Board::Board(int boardSize, int comboSize, int screenWidth, int screenHeight)
 {
 	Board::boardSize = boardSize;
 	Board::comboSize = comboSize;
+	Board::screenSize = screenWidth < screenHeight ? screenWidth : screenHeight;
+	Board::tileSize = (screenSize / 2) / boardSize;
+	Board::spaceBetweenTiles = tileSize / 5;
 
-	// init board as a boardSize x boardSize 2d Matrix of type Tile
-	board = new Tile*[boardSize];
-	for (int i = 0; i < boardSize; i++)
-		board[i] = new Tile[boardSize];
+	int boardPixelSize = boardSize * (tileSize + spaceBetweenTiles);
+	Board::topLeftX = screenWidth / 2 - boardPixelSize / 2;
+	Board::topLeftY = screenHeight / 2 - boardPixelSize / 2;
+
+	initTiles();
 }
 
 Board::~Board()
@@ -16,6 +20,25 @@ Board::~Board()
 	for (int i = 0; i < boardSize; i++)
 		delete board[i];
 	delete board;
+}
+
+void Board::initTiles()
+{
+	// init board as a boardSize x boardSize 2d Matrix of type Tile
+	board = new Tile*[boardSize];
+	for (int i = 0; i < boardSize; i++)
+		board[i] = new Tile[boardSize];
+
+	for (int x = 0; x < boardSize; x++) {
+		for (int y = 0; y < boardSize; y++) {
+			board[x][y].isEmpty = false;
+			board[x][y].color = generateRandomColor();
+			board[x][y].finalXPos = topLeftX + x * (tileSize + spaceBetweenTiles);
+			board[x][y].finalYPos = topLeftY + y * (tileSize + spaceBetweenTiles);
+			board[x][y].currentYPos = board[x][y].finalYPos;
+			board[x][y].velocity = 0.0f;
+		}
+	}
 }
 
 bool Board::tryPlay(int x1, int y1, int x2, int y2)
@@ -29,17 +52,32 @@ bool Board::tryPlay(int x1, int y1, int x2, int y2)
 
 void Board::solve()
 {
+	for (int x = 0; x < boardSize; x++) {
+		for (int y = 0; y < boardSize; y++) {
+			if (isTileInsideCombo(x, y))
+			{
+				board[x][y].isEmpty = true;
+				board[x][y].velocity = 0.0f;
+				board[x][y].currentYPos = board[x][y].finalYPos;
+			}
+		}
+	}
+}
+
+bool Board::isBoardStill()
+{
 	for (int x = 0; x < boardSize; x++)
 		for (int y = 0; y < boardSize; y++)
-			if (isTileInsideCombo(x, y))
-				board[x][y].isEmpty = true;
+			if (board[x][y].currentYPos != board[x][y].finalYPos)
+				return false;
+	return true;
 }
 
 bool Board::isBoardFilled()
 {
 	for (int x = 0; x < boardSize; x++)
 		for (int y = 0; y < boardSize; y++)
-			if (board[x][y].isEmpty || board[x][y].currentYPos != board[x][y].finalYPos)
+			if (board[x][y].isEmpty)
 				return false;
 	return true;
 }
@@ -55,27 +93,36 @@ bool Board::isBoardSolved()
 
 void Board::applyGravity()
 {
-	// loop row by row starting from the bottom
-	// does not look at the last (top) row
-	for (int x = 0; x < boardSize - 1; x++)
+	for (int x = 0; x < boardSize; x++)
 	{
-		for (int y = 0; y < boardSize; y++)
+		// loop row by row starting from the bottom
+		// does not look at the first (top) row
+		for (int y = boardSize - 1; y >= 1; y--)
 		{
 			if (board[x][y].isEmpty)
 			{
-				// swap current (empty) tile with tile above
-				Tile temp = board[x][y];
+				// swap tiles
+				// put content of tile above into empty tile
+				// make tile above empty
+				Tile* tileEmpty = &board[x][y];
+				Tile* tileAbove = &board[x][y - 1];
 
-				board[x][y] = board[x + 1][y];
-				board[x + 1][y] = temp;
+				tileEmpty->isEmpty = tileEmpty->isEmpty;
+				tileEmpty->color = tileAbove->color;
+				tileEmpty->currentYPos = tileAbove->currentYPos;
+				tileEmpty->velocity = tileAbove->velocity;
+
+				tileAbove->isEmpty = true;
 			}
 			// is tile in free fall
 			else if (board[x][y].currentYPos != board[x][y].finalYPos)
 			{
-				board[x][y].currentYPos += velocity * frameTime;
+				board[x][y].currentYPos += board[x][y].velocity;
 				if (board[x][y].currentYPos >= board[x][y].finalYPos)
 					board[x][y].currentYPos = board[x][y].finalYPos;
-				velocity = velocity * 1.1f;
+				if (board[x][y].velocity == 0.0f)
+					board[x][y].velocity = 1;
+				board[x][y].velocity = board[x][y].velocity * 1.1f;
 			}
 		}
 	}
@@ -84,7 +131,7 @@ void Board::applyGravity()
 void Board::spawnTiles()
 {
 	// y index for the top row
-	int y = boardSize - 1;
+	int y = 0;
 
 	// loop through top row, spawn tiles if empty space found
 	for (int x = 0; x < boardSize; x++)
@@ -93,6 +140,7 @@ void Board::spawnTiles()
 		{
 			board[x][y].color = generateRandomColor();
 			board[x][y].isEmpty = false;
+			board[x][y].currentYPos = board[x][y].finalYPos + tileSize + spaceBetweenTiles;
 		}
 	}
 }
@@ -105,10 +153,10 @@ bool Board::isTileInsideCombo(int x, int y)
 	int	matchingHorizontal = 1;
 
 	// loop forward and count ocurrences
-	for (int i = x + 1; 0 <= i && i < boardSize && board[i][y].color != startTile.color; i++)
+	for (int i = x + 1; 0 <= i && i < boardSize && board[i][y].color == startTile.color; i++)
 		matchingHorizontal++;
 	// loop backwards and count ocurrences
-	for (int i = x - 1; 0 <= i && i < boardSize && board[i][y].color != startTile.color; i--)
+	for (int i = x - 1; 0 <= i && i < boardSize && board[i][y].color == startTile.color; i--)
 		matchingHorizontal++;
 
 	if (matchingHorizontal >= comboSize)
@@ -118,10 +166,10 @@ bool Board::isTileInsideCombo(int x, int y)
 	int	matchingVertical = 1;
 
 	// loop up and count ocurrences
-	for (int i = y + 1; 0 <= i && i < boardSize && board[x][i].color != startTile.color; i++)
+	for (int i = y + 1; 0 <= i && i < boardSize && board[x][i].color == startTile.color; i++)
 		matchingVertical++;
 	// loop down and count ocurrences
-	for (int i = y - 1; 0 <= i && i < boardSize && board[x][i].color != startTile.color; i--)
+	for (int i = y - 1; 0 <= i && i < boardSize && board[x][i].color == startTile.color; i--)
 		matchingVertical++;
 
 	if (matchingVertical >= comboSize)
@@ -134,8 +182,9 @@ Color Board::generateRandomColor()
 {
 	int randomNum;
 
-	// initialize random seed
-	srand(time(NULL));
+	int* seed = new int();
+	srand((unsigned int)seed);
+	delete seed;
 
 	// generate random number between 1 and 5 (inclusive)
 	randomNum = rand() % ColorEnumSize;
@@ -143,18 +192,28 @@ Color Board::generateRandomColor()
 	return (Color)randomNum;
 }
 
-void Board::updateFrameTime()
-{
-	timeCurrentFrame = getCurrentTime;
-
-	frameTime = timeCurrentFrame - timeLastFrame;
-	timeLastFrame = timeCurrentFrame;
-}
-
-void renderBoard(renderer, spriteMap)
+void Board::renderBoard(SDL_Renderer* renderer, std::map<Color, SDL_Texture*> spriteMap)
 {
 	for (int x = 0; x < boardSize; x++)
+	{
 		for (int y = 0; y < boardSize; y++)
-			SDL_RenderCopy(renderer, spriteMap[board[x][y].color], NULL, NULL);
+		{
+			if (board[x][y].isEmpty)
+				;
+			else
+			{
+				SDL_Rect* dstrect = new SDL_Rect();
+
+				dstrect->x = board[x][y].finalXPos;
+				dstrect->y = board[x][y].currentYPos;
+				dstrect->w = tileSize;
+				dstrect->h = tileSize;
+				SDL_RenderCopy(renderer, spriteMap[board[x][y].color], NULL, dstrect);
+				//printf("color = %d\n", board[x][y].color);
+
+				delete dstrect;
+			}
+		}
+	}
 }
 

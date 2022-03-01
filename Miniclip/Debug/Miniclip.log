@@ -1,2 +1,6 @@
 ﻿  Game.cpp
+  KeyboardEvents.cpp
+  MouseEvent.cpp
+  main.cpp
+  Generating Code...
   Miniclip.vcxproj -> D:\Dev\Miniclip\Debug\Miniclip.exe

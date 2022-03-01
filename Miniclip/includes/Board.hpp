@@ -1,6 +1,8 @@
 #include <iostream>
 #include <stdlib.h>
-#include <time.h>
+#include <map>
+#include "SDL.h"
+#include "SDL_image.h"
 
 typedef int Color;
 
@@ -15,19 +17,18 @@ enum Colors
 };
 
 typedef struct Tile {
-	bool	isEmpty;
-	Color	color;
-	int		finalXPos;
-	int		finalYPos;
-	int		currentYPos;
-	float	velocity;
-
+	bool	isEmpty = true;
+	Color	color = Black;
+	int		finalXPos = 0;
+	int		finalYPos = 0;
+	int		currentYPos = 0;
+	float	velocity = 0.0f;
 }Tile;
 
 class Board
 {
 public:
-	Board(int boardSize, int comboSize);
+	Board(int boardSize, int comboSize, int screenWidth, int screenHeight);
 	~Board();
 
 	// attempts to swap two tiles.
@@ -38,8 +39,10 @@ public:
 	// deletes all deletable tiles
 	void solve();
 
+	// checks if there are no falling pieces
+	bool isBoardStill();
+
 	// checks if all slots of the board are filled
-	// checks if all tiles are where they should be (not falling from gravity
 	bool isBoardFilled();
 
 	// checks if the board has any possible combos
@@ -56,7 +59,9 @@ public:
 	void updateFrameTime();
 
 	// renders the board's tiles
-	void renderBoard(renderer, spriteMap);
+	//
+	void renderBoard(SDL_Renderer* renderer, std::map<Color, SDL_Texture*> spriteMap);
+
 private:
 	Tile** board = nullptr;	// game board is a 2d matrix of tiles
 
@@ -66,8 +71,16 @@ private:
 	int comboSize = 0;
 	int boardSize = 0;
 
-	int frameTime = 0;
-	Time timeLastFrame = 0;
+	int topLeftX = 0;
+	int topLeftY = 0;
+	// size of smaller window side
+	int screenSize = 0;
+	// size of each tile in pixels
+	int tileSize = 0;
+	int spaceBetweenTiles = 0;
+
+	// inits the 2d matrix board
+	void initTiles();
 
 	// is tile inside a sequence of tiles of the same color
 	// the sequence must be >= comboSize

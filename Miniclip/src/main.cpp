@@ -4,7 +4,7 @@
 int main(int argc, char* argv[])
 {
 	Game* game = new Game("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-							800, 600, false, 8, 3);
+							1200, 1000, false, 8, 3);
 
 	while (game->running())
 	{

@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-
 Game::Game(const char* title, int xpos, int ypos, int width, int height,
 	bool fullscreen, int boardSize, int comboSize)
 {
@@ -34,9 +33,9 @@ Game::Game(const char* title, int xpos, int ypos, int width, int height,
 		isRunning = true;
 	}
 
-	board = new Board(boardSize, comboSize);
-
 	loadTextures();
+
+	board = new Board(boardSize, comboSize, width, height);
 
 	waitingForPlayerInput = false;
 }
@@ -79,16 +78,29 @@ void	Game::handleEvents()
 
 void	Game::update()
 {
+	counter++;
+	printf("counter: %d\n", counter);
+	if (!waitingForPlayerInput && board->isBoardSolved())
+	{
+		// wait(1000);
+	}
 	if (waitingForPlayerInput)
 	{
 		
 	}
 	else
 	{
-		
+		if (board->isBoardStill())
+		{
+			if (board->isBoardFilled())
+				board->solve();
+			else
+				board->spawnTiles();
+		}
+		board->applyGravity();
 	}
 	
-	board->updateFrameTime();
+	//board->updateFrameTime();
 
 }
 
@@ -109,13 +121,20 @@ void	Game::render()
 
 void	Game::loadTextures()
 {
-	backgroundTex = IMG_LoadTexture(renderer, "D:\\Dev\\Miniclip\\assets\\Backdrop13.png");
+	backgroundTex = IMG_LoadTexture(renderer, "assets/Backdrop13.png");
 
-	for (int colorNum = 0; colorNum < ColorEnumSize; colorNum++)
-	{
-		string tileAssetPath = sprintf("assets/color_" + colorNum + ".png");
-		SDL_Texture* tileSprite = IMG_LoadTexture(renderer, tileAssetPath);
-	
-		spriteMap.insert(pair<Color, SDL_Texture*>(colorNum, tileSprite));
-	}
+	SDL_Texture* tileSprite = nullptr;
+
+	// should do this in a for loop
+	// but had trouble formatting a string
+	tileSprite = IMG_LoadTexture(renderer, "assets/Color-1.png");
+	spriteMap.insert(std::pair<Color, SDL_Texture*>(Black, tileSprite));
+	tileSprite = IMG_LoadTexture(renderer, "assets/Color-2.png");
+	spriteMap.insert(std::pair<Color, SDL_Texture*>(Silver, tileSprite));
+	tileSprite = IMG_LoadTexture(renderer, "assets/Color-3.png");
+	spriteMap.insert(std::pair<Color, SDL_Texture*>(Pink, tileSprite));
+	tileSprite = IMG_LoadTexture(renderer, "assets/Color-4.png");
+	spriteMap.insert(std::pair<Color, SDL_Texture*>(Blue, tileSprite));
+	tileSprite = IMG_LoadTexture(renderer, "assets/Color-5.png");
+	spriteMap.insert(std::pair<Color, SDL_Texture*>(Orange, tileSprite));
 }

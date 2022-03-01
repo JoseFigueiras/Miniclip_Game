@@ -1,7 +1,9 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include <iostream>
+#include <map>
 #include "Board.hpp"
+#include <string>
 
 
 class Game
@@ -25,6 +27,7 @@ private:
 	SDL_Texture* backgroundTex = nullptr;
 	std::map<Color, SDL_Texture*> spriteMap;
 
+	int counter = 0;
 	int	bgColor = 0x32A86B;
 	bool isRunning = false;
 	bool waitingForPlayerInput = false;
