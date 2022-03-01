@@ -1,0 +1,2 @@
+D:\Dev\Miniclip\Debug\Miniclip.exe
+D:\Dev\Miniclip\Debug\Miniclip.pdb
