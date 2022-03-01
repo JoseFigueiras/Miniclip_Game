@@ -23,10 +23,13 @@ public:
 private:
 	Board* board = nullptr;
 	SDL_Texture* backgroundTex = nullptr;
+	std::map<Color, SDL_Texture*> spriteMap;
 
 	int	bgColor = 0x32A86B;
 	bool isRunning = false;
 	bool waitingForPlayerInput = false;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
+	void	loadTextures();
 };

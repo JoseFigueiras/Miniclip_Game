@@ -6,21 +6,22 @@ typedef int Color;
 
 enum Colors
 {
-	Color1,
-	Color2,
-	Color3,
-	Color4,
-	Color5,
+	Black,
+	Silver,
+	Pink,
+	Blue,
+	Orange,
 	ColorEnumSize
 };
 
 typedef struct Tile {
 	bool	isEmpty;
 	Color	color;
-	int		baseXPos;
-	int		baseYPos;
-	float	xOffset;
-	float	yOffset;
+	int		finalXPos;
+	int		finalYPos;
+	int		currentYPos;
+	float	velocity;
+
 }Tile;
 
 class Board
@@ -38,18 +39,24 @@ public:
 	void solve();
 
 	// checks if all slots of the board are filled
+	// checks if all tiles are where they should be (not falling from gravity
 	bool isBoardFilled();
 
 	// checks if the board has any possible combos
 	// returns false if one or more combos are possible
 	bool isBoardSolved();
 
-	// applies 1 level of gravity (tiles drop 1 grid)
+	// applies gravity for that frame
 	void applyGravity();
 
 	// spawns one row of tiles at the top of the board
 	void spawnTiles();
 
+	// self explanatory tbqh
+	void updateFrameTime();
+
+	// renders the board's tiles
+	void renderBoard(renderer, spriteMap);
 private:
 	Tile** board = nullptr;	// game board is a 2d matrix of tiles
 
@@ -59,6 +66,8 @@ private:
 	int comboSize = 0;
 	int boardSize = 0;
 
+	int frameTime = 0;
+	Time timeLastFrame = 0;
 
 	// is tile inside a sequence of tiles of the same color
 	// the sequence must be >= comboSize
