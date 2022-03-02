@@ -1,4 +1,6 @@
-﻿  Game.cpp
+﻿  Board.cpp
+D:\Dev\Miniclip\src\Board.cpp(130,52): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+  Game.cpp
   KeyboardEvents.cpp
   MouseEvent.cpp
   main.cpp

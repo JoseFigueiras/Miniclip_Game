@@ -4,6 +4,7 @@
 #include <map>
 #include "Board.hpp"
 #include <string>
+#include <windows.h> // for Sleep()
 
 
 class Game
@@ -27,12 +28,15 @@ private:
 	SDL_Texture* backgroundTex = nullptr;
 	std::map<Color, SDL_Texture*> spriteMap;
 
+	bool isMousePressed = false;
+	int mouseXPos = 0;
+	int mouseYPos = 0;
+
 	int counter = 0;
-	int	bgColor = 0x32A86B;
 	bool isRunning = false;
 	bool waitingForPlayerInput = false;
-	SDL_Window* window;
-	SDL_Renderer* renderer;
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
 
 	void	loadTextures();
 };

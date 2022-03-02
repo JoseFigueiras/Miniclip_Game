@@ -35,6 +35,7 @@ void Board::initTiles()
 			board[x][y].color = generateRandomColor();
 			board[x][y].finalXPos = topLeftX + x * (tileSize + spaceBetweenTiles);
 			board[x][y].finalYPos = topLeftY + y * (tileSize + spaceBetweenTiles);
+			board[x][y].currentXPos = board[x][y].finalXPos;
 			board[x][y].currentYPos = board[x][y].finalYPos;
 			board[x][y].velocity = 0.0f;
 		}
@@ -66,10 +67,14 @@ void Board::solve()
 
 bool Board::isBoardStill()
 {
-	for (int x = 0; x < boardSize; x++)
-		for (int y = 0; y < boardSize; y++)
-			if (board[x][y].currentYPos != board[x][y].finalYPos)
+	for (int x = 0; x < boardSize; x++) {
+		for (int y = 0; y < boardSize; y++) {
+			if (!board[x][y].isEmpty && board[x][y].currentYPos != board[x][y].finalYPos)
+			{
 				return false;
+			}
+		}
+	}
 	return true;
 }
 
@@ -93,12 +98,11 @@ bool Board::isBoardSolved()
 
 void Board::applyGravity()
 {
-	for (int x = 0; x < boardSize; x++)
-	{
+	// move tiles down in the board matrix
+	for (int x = 0; x < boardSize; x++) {
 		// loop row by row starting from the bottom
 		// does not look at the first (top) row
-		for (int y = boardSize - 1; y >= 1; y--)
-		{
+		for (int y = boardSize - 1; y >= 1; y--) {
 			if (board[x][y].isEmpty)
 			{
 				// swap tiles
@@ -107,15 +111,21 @@ void Board::applyGravity()
 				Tile* tileEmpty = &board[x][y];
 				Tile* tileAbove = &board[x][y - 1];
 
-				tileEmpty->isEmpty = tileEmpty->isEmpty;
+				tileEmpty->isEmpty = tileAbove->isEmpty;
 				tileEmpty->color = tileAbove->color;
 				tileEmpty->currentYPos = tileAbove->currentYPos;
 				tileEmpty->velocity = tileAbove->velocity;
 
 				tileAbove->isEmpty = true;
 			}
+		}
+	}
+
+	// make tiles physically fall
+	for (int x = 0; x < boardSize; x++) {
+		for (int y = 0; y < boardSize; y++) {
 			// is tile in free fall
-			else if (board[x][y].currentYPos != board[x][y].finalYPos)
+			if (board[x][y].currentYPos != board[x][y].finalYPos)
 			{
 				board[x][y].currentYPos += board[x][y].velocity;
 				if (board[x][y].currentYPos >= board[x][y].finalYPos)
@@ -123,6 +133,8 @@ void Board::applyGravity()
 				if (board[x][y].velocity == 0.0f)
 					board[x][y].velocity = 1;
 				board[x][y].velocity = board[x][y].velocity * 1.1f;
+				if (board[x][y].velocity >= 10.0f)
+					board[x][y].velocity = 10.0f;
 			}
 		}
 	}
@@ -140,7 +152,7 @@ void Board::spawnTiles()
 		{
 			board[x][y].color = generateRandomColor();
 			board[x][y].isEmpty = false;
-			board[x][y].currentYPos = board[x][y].finalYPos + tileSize + spaceBetweenTiles;
+			board[x][y].currentYPos = board[x][y].finalYPos - tileSize - spaceBetweenTiles;
 		}
 	}
 }
@@ -204,7 +216,7 @@ void Board::renderBoard(SDL_Renderer* renderer, std::map<Color, SDL_Texture*> sp
 			{
 				SDL_Rect* dstrect = new SDL_Rect();
 
-				dstrect->x = board[x][y].finalXPos;
+				dstrect->x = board[x][y].currentXPos;
 				dstrect->y = board[x][y].currentYPos;
 				dstrect->w = tileSize;
 				dstrect->h = tileSize;
@@ -217,3 +229,22 @@ void Board::renderBoard(SDL_Renderer* renderer, std::map<Color, SDL_Texture*> sp
 	}
 }
 
+void Board::printBoard()
+{
+	for (int x = 0; x < boardSize; x++) {
+		for (int y = 0; y < boardSize; y++) {
+			printf("[%f] ", board[x][y].velocity);
+		}
+		printf("\n");
+	}
+}
+
+void Board::startTileMovement(int mouseXPos, int mouseYPos)
+{
+
+}
+
+void Board::endTileMovement(int mouseXPos, int mouseYPos)
+{
+
+}

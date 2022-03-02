@@ -21,6 +21,7 @@ typedef struct Tile {
 	Color	color = Black;
 	int		finalXPos = 0;
 	int		finalYPos = 0;
+	int		currentXPos = 0;
 	int		currentYPos = 0;
 	float	velocity = 0.0f;
 }Tile;
@@ -31,10 +32,6 @@ public:
 	Board(int boardSize, int comboSize, int screenWidth, int screenHeight);
 	~Board();
 
-	// attempts to swap two tiles.
-	// returns true if the swap results in a valid sequence
-	// returns false otherwise
-	bool tryPlay(int x1, int y1, int x2, int y2);
 
 	// deletes all deletable tiles
 	void solve();
@@ -55,12 +52,14 @@ public:
 	// spawns one row of tiles at the top of the board
 	void spawnTiles();
 
-	// self explanatory tbqh
-	void updateFrameTime();
+	void startTileMovement(int mouseXPos, int mouseYPos);
+
+	void endTileMovement(int mouseXPos, int mouseYPos);
 
 	// renders the board's tiles
-	//
 	void renderBoard(SDL_Renderer* renderer, std::map<Color, SDL_Texture*> spriteMap);
+
+	void printBoard();
 
 private:
 	Tile** board = nullptr;	// game board is a 2d matrix of tiles
@@ -79,8 +78,17 @@ private:
 	int tileSize = 0;
 	int spaceBetweenTiles = 0;
 
+	bool isPlayOngoing = false;
+
+
+
 	// inits the 2d matrix board
 	void initTiles();
+
+	// attempts to swap two tiles.
+	// returns true if the swap results in a valid sequence
+	// returns false otherwise
+	bool tryPlay(int x1, int y1, int x2, int y2);
 
 	// is tile inside a sequence of tiles of the same color
 	// the sequence must be >= comboSize

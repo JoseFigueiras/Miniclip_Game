@@ -147,9 +147,7 @@
     <ClCompile Include="src\Board.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameTile.cpp" />
-    <ClCompile Include="src\KeyboardEvents.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MouseEvent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\Board.hpp" />

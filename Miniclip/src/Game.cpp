@@ -78,18 +78,33 @@ void	Game::handleEvents()
 
 void	Game::update()
 {
-	counter++;
-	printf("counter: %d\n", counter);
+	//counter++;
+	//printf("counter: %d\n", counter);
 	if (!waitingForPlayerInput && board->isBoardSolved())
 	{
 		// wait(1000);
 	}
 	if (waitingForPlayerInput)
 	{
-		
+		if (isMousePressed)
+		{
+			board->startTileMovement(mouseXPos, mouseYPos);
+		}
+		else
+		{
+			board->endTileMovement(mouseXPos, mouseYPos);
+		}
+
+		// if tile movement resulted in a valid play
+		// the board will no longer be solved
+		if (!board->isBoardSolved())
+			waitingForPlayerInput = false;
 	}
 	else
 	{
+		//printf("is still: %d\n", board->isBoardStill());
+		//printf("is filled: %d\n", board->isBoardFilled());
+		//board->printBoard();
 		if (board->isBoardStill())
 		{
 			if (board->isBoardFilled())
@@ -98,10 +113,12 @@ void	Game::update()
 				board->spawnTiles();
 		}
 		board->applyGravity();
-	}
-	
-	//board->updateFrameTime();
 
+		if (board->isBoardStill() && board->isBoardFilled() && board->isBoardSolved())
+			waitingForPlayerInput = true;
+	}
+	//board->updateFrameTime();
+	Sleep(15);
 }
 
 void	Game::render()
@@ -109,8 +126,7 @@ void	Game::render()
 	SDL_RenderClear(renderer);
 
 	// draws background
-	SDL_SetRenderDrawColor(renderer,
-		bgColor >> 16, bgColor >> 8, bgColor, 0xFF);
+	// SDL_SetRenderDrawColor(renderer, bgColor >> 16, bgColor >> 8, bgColor, 0xFF);
 
 	SDL_RenderCopy(renderer, backgroundTex, NULL, NULL);
 
@@ -137,4 +153,24 @@ void	Game::loadTextures()
 	spriteMap.insert(std::pair<Color, SDL_Texture*>(Blue, tileSprite));
 	tileSprite = IMG_LoadTexture(renderer, "assets/Color-5.png");
 	spriteMap.insert(std::pair<Color, SDL_Texture*>(Orange, tileSprite));
+}
+
+void	Game::handleMouseEvent(SDL_Event event)
+{
+	if (event.type == SDL_MOUSEBUTTONDOWN)
+		isMousePressed = true;
+	if (event.type == SDL_MOUSEBUTTONUP)
+		isMousePressed = false;
+	if (event.type == SDL_MOUSEMOTION)
+	{
+		mouseXPos = event.motion.x;
+		mouseYPos = event.motion.y;
+	}
+}
+
+void	Game::handleKeyboardEvent(SDL_Event event)
+{
+	if (event.type == SDL_KEYDOWN)
+	{
+	}
 }
